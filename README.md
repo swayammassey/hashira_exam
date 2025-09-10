@@ -61,10 +61,10 @@ npm run sample2
 Expected output:
 ```
 k = 7
-selected points = (1, 1284755224093748462846905269271565318441), (2, 4377027755248439082937867), (3, 3492461), (4, 4135903920539906487), (5, 4742473784338349815), (6, 279734996209612467957165), (7, 2670177736758346)
-secret f(0) = -6290016743746469796
+selected points = (4, 1016509518118225951), (5, 3711974121218449851), (6, 10788619898233492461), (7, 26709394976508342463), (8, 58725075613853308713), (9, 117852986202006511971), (10, 220003896831595324801)
+secret f(0) = 79836264059301
 ```
-This test case uses larger numbers in various bases (3, 6, 7, 8, 12, 15, 16) with k=7 points needed.
+This test case uses larger numbers in various bases (3, 6, 7, 8, 12, 15, 16) with k=7 points needed. Uses points 4-10 for correct interpolation.
 
 ## Use with your own test file
 Place your JSON file anywhere and run:
@@ -78,7 +78,7 @@ Alternative Java implementation available:
 # Compile and run
 javac ShamirJava.java
 java ShamirJava samples/sample1.json  # outputs: secret f(0) = 3
-java ShamirJava samples/sample2.json  # outputs: secret f(0) = -6290016743746469796
+java ShamirJava samples/sample2.json  # outputs: secret f(0) = 79836264059301
 ```
 
 ## Notes

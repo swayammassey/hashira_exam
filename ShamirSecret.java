@@ -1,8 +1,11 @@
+import java.io.*;
 import java.math.BigInteger;
 import java.util.*;
+import com.google.gson.*;
 
-public class ShamirJava {
+public class ShamirSecret {
     
+    // Fraction class for exact arithmetic
     static class Fraction {
         private BigInteger numerator;
         private BigInteger denominator;
@@ -12,11 +15,13 @@ public class ShamirJava {
                 throw new ArithmeticException("Division by zero");
             }
             
+            // Normalize sign
             if (d.compareTo(BigInteger.ZERO) < 0) {
                 n = n.negate();
                 d = d.negate();
             }
             
+            // Reduce fraction
             BigInteger gcd = n.abs().gcd(d);
             this.numerator = n.divide(gcd);
             this.denominator = d.divide(gcd);
@@ -26,9 +31,20 @@ public class ShamirJava {
             this(n, BigInteger.ONE);
         }
         
+        public Fraction(long n) {
+            this(BigInteger.valueOf(n), BigInteger.ONE);
+        }
+        
         public Fraction add(Fraction other) {
             BigInteger newNum = this.numerator.multiply(other.denominator)
                               .add(other.numerator.multiply(this.denominator));
+            BigInteger newDen = this.denominator.multiply(other.denominator);
+            return new Fraction(newNum, newDen);
+        }
+        
+        public Fraction subtract(Fraction other) {
+            BigInteger newNum = this.numerator.multiply(other.denominator)
+                              .subtract(other.numerator.multiply(this.denominator));
             BigInteger newDen = this.denominator.multiply(other.denominator);
             return new Fraction(newNum, newDen);
         }
@@ -50,15 +66,20 @@ public class ShamirJava {
             );
         }
         
+        public boolean isInteger() {
+            return denominator.equals(BigInteger.ONE);
+        }
+        
         @Override
         public String toString() {
-            if (denominator.equals(BigInteger.ONE)) {
+            if (isInteger()) {
                 return numerator.toString();
             }
             return numerator + "/" + denominator;
         }
     }
     
+    // Point class to store (x, y) coordinates
     static class Point {
         BigInteger x;
         BigInteger y;
@@ -74,7 +95,12 @@ public class ShamirJava {
         }
     }
     
+    // Parse integer from given base
     public static BigInteger parseFromBase(String value, int base) {
+        if (base < 2 || base > 36) {
+            throw new IllegalArgumentException("Unsupported base: " + base);
+        }
+        
         BigInteger result = BigInteger.ZERO;
         BigInteger baseBI = BigInteger.valueOf(base);
         String digits = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -90,8 +116,34 @@ public class ShamirJava {
         return result;
     }
     
+    // Extract points from JSON
+    public static List<Point> extractPoints(JsonObject json) {
+        JsonObject keys = json.getAsJsonObject("keys");
+        int n = keys.get("n").getAsInt();
+        int k = keys.get("k").getAsInt();
+        
+        List<Point> points = new ArrayList<>();
+        
+        for (String key : json.keySet()) {
+            if (key.equals("keys")) continue;
+            
+            JsonObject entry = json.getAsJsonObject(key);
+            BigInteger x = new BigInteger(key);
+            int base = entry.get("base").getAsInt();
+            String value = entry.get("value").getAsString();
+            BigInteger y = parseFromBase(value, base);
+            
+            points.add(new Point(x, y));
+        }
+        
+        // Sort by x coordinate and take first k points
+        points.sort(Comparator.comparing(p -> p.x));
+        return points.subList(0, Math.min(k, points.size()));
+    }
+    
+    // Lagrange interpolation at x = 0
     public static Fraction lagrangeAtZero(List<Point> points) {
-        Fraction result = new Fraction(BigInteger.ZERO);
+        Fraction result = new Fraction(0);
         
         for (int i = 0; i < points.size(); i++) {
             Point pi = points.get(i);
@@ -101,6 +153,7 @@ public class ShamirJava {
                 if (i == j) continue;
                 
                 Point pj = points.get(j);
+                // term *= (0 - xj) / (xi - xj)
                 Fraction numerator = new Fraction(pj.x.negate());
                 Fraction denominator = new Fraction(pi.x.subtract(pj.x));
                 term = term.multiply(numerator.divide(denominator));
@@ -114,37 +167,23 @@ public class ShamirJava {
     
     public static void main(String[] args) {
         if (args.length != 1) {
-            System.err.println("Usage: java ShamirJava <json-file>");
+            System.err.println("Usage: java ShamirSecret <json-file>");
             System.exit(1);
         }
         
         try {
-            // Hardcoded test cases for simplicity
-            List<Point> points = new ArrayList<>();
+            // Read JSON file
+            FileReader reader = new FileReader(args[0]);
+            JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+            reader.close();
             
-            if (args[0].contains("sample1")) {
-                // Sample 1 data
-                points.add(new Point(BigInteger.valueOf(1), BigInteger.valueOf(4)));
-                points.add(new Point(BigInteger.valueOf(2), parseFromBase("111", 2))); // 7
-                points.add(new Point(BigInteger.valueOf(3), BigInteger.valueOf(12)));
-                points = points.subList(0, 3); // k=3
-            } else if (args[0].contains("sample2")) {
-                // Sample 2 data - use points 4-10 for correct answer
-                points.add(new Point(BigInteger.valueOf(4), parseFromBase("e1b5e05623d881f", 16)));
-                points.add(new Point(BigInteger.valueOf(5), parseFromBase("316034514573652620673", 8)));
-                points.add(new Point(BigInteger.valueOf(6), parseFromBase("2122212201122002221120200210011020220200", 3)));
-                points.add(new Point(BigInteger.valueOf(7), parseFromBase("20120221122211000100210021102001201112121", 3)));
-                points.add(new Point(BigInteger.valueOf(8), parseFromBase("20220554335330240002224253", 6)));
-                points.add(new Point(BigInteger.valueOf(9), parseFromBase("45153788322a1255483", 12)));
-                points.add(new Point(BigInteger.valueOf(10), parseFromBase("1101613130313526312514143", 7)));
-                points = points.subList(0, 7); // k=7
-            } else {
-                System.err.println("Unknown test case");
-                System.exit(1);
-            }
+            // Extract points
+            List<Point> points = extractPoints(json);
             
+            // Calculate secret
             Fraction secret = lagrangeAtZero(points);
             
+            // Output results
             System.out.println("k = " + points.size());
             System.out.print("selected points = ");
             for (int i = 0; i < points.size(); i++) {
