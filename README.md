@@ -41,6 +41,31 @@ selected points = (1, 4), (2, 7), (3, 12)
 secret f(0) = 3
 ```
 
+## Test Cases
+
+### Sample 1 (samples/sample1.json)
+```
+npm run sample1
+```
+Expected output:
+```
+k = 3
+selected points = (1, 4), (2, 7), (3, 12)
+secret f(0) = 3
+```
+
+### Sample 2 (samples/sample2.json)
+```
+npm run sample2
+```
+Expected output:
+```
+k = 7
+selected points = (1, 1284755224093748462846905269271565318441), (2, 4377027755248439082937867), (3, 3492461), (4, 4135903920539906487), (5, 4742473784338349815), (6, 279734996209612467957165), (7, 2670177736758346)
+secret f(0) = -6290016743746469796
+```
+This test case uses larger numbers in various bases (3, 6, 7, 8, 12, 15, 16) with k=7 points needed.
+
 ## Use with your own test file
 Place your JSON file anywhere and run:
 ```
