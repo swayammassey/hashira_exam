@@ -1,0 +1,16 @@
+{
+  "name": "shamir-secret-interpolation",
+  "version": "1.0.0",
+  "description": "CLI to compute the secret (f(0)) from Shamir-style points using Lagrange interpolation (no modulus)",
+  "type": "module",
+  "bin": {
+    "secret": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "sample1": "node src/index.js samples/sample1.json",
+    "sample2": "node src/index.js samples/sample2.json"
+  },
+  "keywords": ["lagrange", "interpolation", "shamir", "cli"],
+  "license": "MIT"
+}
