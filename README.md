@@ -72,6 +72,16 @@ Place your JSON file anywhere and run:
 node src/index.js path/to/your.json
 ```
 
+## Java Version
+Alternative Java implementation available:
+```bash
+# Compile and run
+javac ShamirJava.java
+java ShamirJava samples/sample1.json  # outputs: secret f(0) = 3
+java ShamirJava samples/sample2.json  # outputs: secret f(0) = -6290016743746469796
+```
+
 ## Notes
 - This implementation computes over the rationals (no finite field modulus).
-- Arithmetic uses BigInt-backed exact fractions to avoid precision loss.
+- Node.js version uses BigInt-backed exact fractions to avoid precision loss.
+- Java version uses BigInteger with custom Fraction class for exact arithmetic.
